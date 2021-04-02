@@ -1,0 +1,181 @@
+---
+title: "Week 3 - TRasportation Vis"
+output: html_notebook
+---
+### Loading the packages
+
+```{r}
+library(tidyverse)
+library(nycflights13)
+```
+
+
+### Exploring the data set {.tabset}
+
+The package *nycflights13* has the data of several airports, flights and planes. Below some examples of the data available with such packages:
+
+
+```{r}
+airlines
+```
+
+```{r}
+airports
+```
+
+```{r}
+planes
+```
+
+
+```{r}
+flights
+```
+
+#### Visualizing the department delay of the airports
+
+**getting the data**
+
+```{r}
+dep_delay <- flights %>% select(origin, dep_time, sched_dep_time) %>% mutate(delay = dep_time - sched_dep_time)
+
+dep_delay
+```
+
+**filtering the top five delayers**
+
+```{r}
+dep_delay_late <- filter(dep_delay, delay > 0)
+```
+
+```{r}
+delay_summary <- dep_delay_late %>% group_by(origin) %>% summarise(count = n())
+```
+```{r}
+delay_summary
+```
+
+```{r}
+delay_summary$type <- "delayed"
+```
+
+
+
+**getting all flights**
+
+
+```{r}
+not_delay_summary <- dep_delay %>% group_by(origin) %>% summarise(count = n())
+```
+
+```{r}
+not_delay_summary
+```
+```{r}
+not_delay_summary$type <- "all"
+```
+
+**final data set**
+
+
+```{r}
+final_delay_all <- rbind(delay_summary, not_delay_summary)
+```
+
+```{r}
+final_delay_all
+```
+
+**Creating the GGPlot**
+
+```{r}
+
+
+plot1 <- ggplot(data = final_delay_all, mapping = aes(x = factor(origin),
+                                             y = count)) +
+  geom_col(mapping = aes(fill = factor(type)), position = "dodge") +
+  geom_text(mapping = aes(fill = factor(type), label =count),
+            vjust=-0.35,
+            position = position_dodge(width = 0.9)) +
+  scale_fill_grey(start = 0.2, end = 1) +
+  theme(panel.background = element_rect(fill = "lightsteelblue1"),
+        plot.background = element_rect(fill = "lightskyblue3"),
+        legend.background = element_rect(fill = "lightskyblue3", colour = "black"),
+        panel.grid = element_blank(),
+        panel.grid.major.x = element_blank(),
+        panel.grid.major.y = element_line( size=.25, color="black" ),
+        plot.title = element_text(hjust = 0.5, size = 20, face = "bold"),
+        plot.subtitle = element_text(hjust = 0.5, size = 16),
+        axis.title.x = element_text(size = 14),
+        axis.title.y = element_text(size = 14)) +
+  labs(title = "New York Flights (2013) ✈",
+       subtitle = "All Flights vs. Delayed Flights",
+       y = "Number of Flights",
+       x = "Airport",
+       caption = "Source: nycflights13")
+
+plot1
+```
+**transforming it into plotly**
+
+```{r}
+ggsave(plot = plot1, width = 12, height = 8, filename = "delayed_flights.png")
+```
+
+```{r}
+ggplotly(plot1)
+```
+
+
+#### Visualizing the carriers
+
+**getting the data**
+
+```{r}
+flights
+```
+
+
+```{r}
+carriers <- flights %>% group_by(carrier) %>% summarise(count = n())
+carriers
+```
+
+
+**Visualization**
+
+
+```{r}
+plot2 <- ggplot(data = carriers, mapping = aes(x = factor(carrier),
+                                             y = count)) +
+  geom_col(mapping = aes(fill = carrier)) +
+  geom_text(mapping = aes(label = count),
+            vjust=-0.35,
+            position = position_dodge(width = 0.9)) +
+  theme(panel.background = element_rect(fill = "lightsteelblue1"),
+        plot.background = element_rect(fill = "lightskyblue3"),
+        legend.background = element_rect(fill = "lightskyblue3", colour = "black"),
+        panel.grid = element_blank(),
+        panel.grid.major.x = element_blank(),
+        panel.grid.major.y = element_line( size=.25, color="black" ),
+        plot.title = element_text(hjust = 0.5, size = 20, face = "bold"),
+        plot.subtitle = element_text(hjust = 0.5, size = 16),
+        axis.title.x = element_text(size = 14),
+        axis.title.y = element_text(size = 14)) +
+  labs(title = "New York Flights (2013) ✈",
+       subtitle = "All Flights vs. Delayed Flights",
+       y = "Number of Flights",
+       x = "Carrier",
+       caption = "Source: nycflights13")
+
+plot2
+```
+
+```{r}
+ggsave(plot = plot2, width = 12, height = 8, filename = "carrier_flights.png")
+```
+
+
+
+
+#### Most Common destinations
